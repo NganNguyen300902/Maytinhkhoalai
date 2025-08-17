@@ -3,25 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Máy tính Khóa Lãi - NNN</title>
+  <title>NNN – Máy tính Khóa Lãi & Phân bổ vốn</title>
   <style>
     :root{
       --bg:#f7f8fb; --card:#ffffff; --ink:#0f172a; --muted:#475569; --accent:#2563eb; --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
-      --border:#e5e7eb; --chip:#f1f5f9; --shadow:0 8px 26px rgba(15, 23, 42, .06)
+      --border:#e5e7eb; --chip:#f1f5f9; --shadow:0 10px 32px rgba(15,23,42,.06)
     }
     *{box-sizing:border-box}
     body{margin:0; font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); color:var(--ink)}
-    .wrap{max-width:980px; margin:32px auto 64px; padding:0 20px}
-    header{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:18px}
+    .wrap{max-width:1100px; margin:28px auto 64px; padding:0 20px}
+    header{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:14px}
     h1{font-size:26px; margin:0 0 6px}
     .sub{color:var(--muted)}
     .card{background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:18px}
     .grid{display:grid; gap:16px}
-    @media(min-width:900px){.grid.cols-2{grid-template-columns:1fr 1fr}}
+    .grid.cols-2{grid-template-columns:1fr 1fr}
+    @media(max-width:980px){.grid.cols-2{grid-template-columns:1fr}}
     .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
     .row > *{flex:1 1 180px}
     label{display:block; color:var(--muted); font-size:13px; margin:6px 0}
     input, select{width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#fff; color:var(--ink)}
+    input[disabled]{background:#f8fafc; color:#0f172a; opacity:1; font-weight:600; border-color:var(--border)}
     input[type=number]{appearance:textfield}
     input[type=number]::-webkit-outer-spin-button,
     input[type=number]::-webkit-inner-spin-button{appearance:none; margin:0}
@@ -48,22 +50,43 @@
     .group{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
     .grow{flex:1}
     footer{margin-top:18px; color:var(--muted); font-size:12px}
+
+    /* Tabs (menu) */
+    .tabs{display:flex; gap:10px; margin:6px 0 18px}
+    .tab{border:1px solid var(--border); background:#fff; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:600}
+    .tab.active{background:#e8f0ff; border-color:#bfdbfe; color:#1d4ed8}
+    .hidden{display:none !important}
+
+    /* Table in “Phân bổ vốn” */
+    .alloc th, .alloc td{text-align:center}
+    .alloc thead th{background:#f3f6fb}
+    .badge{padding:2px 8px; border-radius:10px; font-size:12px; background:#e2e8f0}
+    .badge.ok{background:#22c55e; color:#fff}
+    .badge.warn{background:#ffedd5; color:#92400e}
+    .badge.err{background:#fee2e2; color:#991b1b}
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <div>
-        <h1>Máy tính Khóa Lãi (Weekly) — Light</h1>
-        <div class="sub">Tập trung duy nhất vào logic khóa lãi & stop đề xuất.</div>
+        <h1>NNN – Máy tính Khóa Lãi & Phân bổ vốn</h1>
+        <div class="sub">Light theme · Hai công cụ trong một: <b>Khóa lãi</b> & <b>Phân bổ vốn</b>.</div>
       </div>
       <div class="toolbar">
-        <button class="btn" id="btnReset">Đặt lại</button>
+        <button class="btn" id="btnResetAll">Đặt lại</button>
         <button class="btn" id="btnPrint">In / Lưu PDF</button>
       </div>
     </header>
 
-    <section class="card" id="calc">
+    <!-- Menu -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="profitlock">1. Máy tính khóa lãi</button>
+      <button class="tab" data-tab="allocation">2. Phân bổ vốn</button>
+    </nav>
+
+    <!-- ===== TOOL 1: MÁY TÍNH KHÓA LÃI ===== -->
+    <section class="card" id="profitlock">
       <div class="grid cols-2">
         <div>
           <h3>Thông tin giao dịch</h3>
@@ -170,25 +193,160 @@
       </div>
     </section>
 
+    <!-- ===== TOOL 2: PHÂN BỔ VỐN ===== -->
+    <section class="card hidden" id="allocation">
+      <h3>Phân bổ vốn (KDH) – Kịch bản A/B</h3>
+
+      <h4>1) Nhập dữ liệu ban đầu</h4>
+      <div class="row">
+        <div>
+          <label>Tổng vốn mục tiêu (VND)</label>
+          <input id="totalCap" value="26000000" inputmode="numeric" />
+        </div>
+        <div>
+          <label>Số lượng hiện tại (cp)</label>
+          <input id="n0" value="400" inputmode="numeric" />
+        </div>
+        <div>
+          <label>Giá vốn vị thế hiện tại (VND)</label>
+          <input id="p0" value="28500" inputmode="numeric" />
+        </div>
+        <div>
+          <label>Ngân sách còn lại (VND)</label>
+          <input id="budget" disabled />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Mục tiêu lợi nhuận (% trên tổng vốn)</label>
+          <input id="targetPct" value="40" inputmode="numeric" />
+        </div>
+        <div>
+          <label>Mục tiêu lợi nhuận (VND)</label>
+          <input id="targetVND" disabled />
+        </div>
+        <div>
+          <label>Stoploss (%)</label>
+          <input id="stopPct" value="8" inputmode="numeric" />
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <h4>2) Kịch bản A — Nhập Target & chạy kết quả</h4>
+      <div class="row">
+        <div>
+          <label>Target (VND)</label>
+          <input id="addTarget" inputmode="numeric" />
+        </div>
+        <div>
+          <label>Giá hiện tại (VND)</label>
+          <input id="marketPrice" inputmode="numeric" />
+        </div>
+        <div style="align-self:end">
+          <button class="btn accent" onclick="runScenarioA()">▶ Chạy tính toán</button>
+        </div>
+      </div>
+
+      <div style="overflow:auto">
+        <table class="alloc">
+          <thead>
+            <tr>
+              <th>Target</th>
+              <th>Kịch bản</th>
+              <th>Giá mua</th>
+              <th>Số cp mua</th>
+              <th>Chi phí</th>
+              <th>Bình quân mới</th>
+              <th>Stop mới</th>
+              <th>Lợi nhuận tại Target</th>
+              <th>Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyA"></tbody>
+        </table>
+      </div>
+
+      <div class="hr"></div>
+
+      <h4>3) Kịch bản B — Bạn có giá mua dự kiến</h4>
+      <div class="row">
+        <div>
+          <label>Giá mua dự kiến (VND)</label>
+          <input id="p1" value="35500" inputmode="numeric" />
+        </div>
+        <div>
+          <label>Target mong muốn (VND)</label>
+          <input id="targetB" value="45000" inputmode="numeric" />
+        </div>
+        <div>
+          <label>Stop từ bình quân mới (%)</label>
+          <input id="stopPctB" value="8" inputmode="numeric" />
+        </div>
+        <div style="align-self:end">
+          <button class="btn accent" onclick="runScenarioB()">▶ Tính kịch bản B</button>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Bình quân sau khi mua hết (VND)</label>
+          <input id="avgB" disabled />
+        </div>
+        <div>
+          <label>Stoploss mới (VND)</label>
+          <input id="stopB" disabled />
+        </div>
+        <div>
+          <label>Lãi tại Target (VND)</label>
+          <input id="profitB" disabled />
+        </div>
+        <div>
+          <label>Lợi nhuận % so với bình quân mới</label>
+          <input id="profitPctB" disabled />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Kết quả: Cần mua tối thiểu (cp)</label>
+          <input id="needBuyB" disabled />
+        </div>
+        <div>
+          <label>Mua được (dùng hết ngân sách) (cp)</label>
+          <input id="canBuyB" disabled />
+        </div>
+        <div>
+          <label>Target tối thiểu cần có (VND)</label>
+          <input id="minTargetB" disabled />
+        </div>
+      </div>
+    </section>
+
     <footer>
-      <div>Logic: Stop đề xuất lấy giá cao nhất giữa “thang khóa lãi” (nội suy theo +20/+40/+100%) và mốc kỹ thuật (MA10w, swing low). Nếu stop ≥ giá hiện tại → cân nhắc giảm vị thế.</div>
+      <div class="small">© 2025 — Không phải khuyến nghị đầu tư. “Khóa lãi”: Stop đề xuất = max(Stop theo thang, Stop kỹ thuật). “Phân bổ vốn”: Ngân sách & Mục tiêu lợi nhuận tự động tính.</div>
     </footer>
   </div>
 
   <script>
+    // ===== Utility (dùng chung) =====
     const $ = (id)=>document.getElementById(id);
-
-    function fmt(n,unit=""){
-      if(n==null||isNaN(n)) return "—";
-      return new Intl.NumberFormat('vi-VN',{maximumFractionDigits:2}).format(n)+(unit||"")
-    }
-    function percent(n){
-      if(n==null||isNaN(n)) return "—";
-      return (n>0?"+":"")+fmt(n, "%")
-    }
+    const fmt = (n,dec=0)=> isFinite(n)? Number(n).toLocaleString('vi-VN',{maximumFractionDigits:dec, minimumFractionDigits:dec}) : "—";
+    const percentTxt = (n)=> isFinite(n)? ((n>0?"+":"")+fmt(n,2)+" %") : "—";
     const clamp=(x,min,max)=>Math.min(max,Math.max(min,x));
     const lerp=(a,b,t)=>a+(b-a)*t;
+    const roundToTick=(x,step)=> (!isFinite(x)||!isFinite(step)||step<=0)? x : Math.round(x/step)*step;
 
+    // ===== Tabs =====
+    document.querySelectorAll('.tab').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.getAttribute('data-tab');
+        document.querySelectorAll('section.card').forEach(s=>s.classList.add('hidden'));
+        $(tab).classList.remove('hidden');
+      });
+    });
+
+    // ===== TOOL 1: KHÓA LÃI =====
     function computeStops(){
       const entry=parseFloat($("entry").value);
       const current=parseFloat($("current").value);
@@ -203,16 +361,16 @@
       }
 
       const profitPct = (current/entry - 1)*100;
-      $("profit").textContent = percent(profitPct);
+      $("profit").textContent = percentTxt(profitPct);
 
-      // Initial stop
+      // Stop ban đầu
       let initStop = entry*(1 - (isFinite(initPct)?initPct:0.08));
       if(isFinite(breakoutLow) && breakoutLow>0){
-        initStop = Math.max(initStop, breakoutLow); // chọn ngưỡng gần hơn (cao hơn)
+        initStop = Math.max(initStop, breakoutLow);
       }
-      $("initStop").textContent = fmt(initStop);
+      $("initStop").textContent = fmt(initStop,2);
 
-      // Ladder anchors
+      // Thang khóa lãi
       const keep20 = clamp(parseFloat($("keep20").value)||50,0,100)/100;
       const keep40 = clamp(parseFloat($("keep40").value)||65,0,100)/100;
       const keep100= clamp(parseFloat($("keep100").value)||85,0,100)/100;
@@ -234,36 +392,31 @@
         const t=(p-a40.p)/(a100.p-a40.p);
         ladderStop = lerp(a40.s,a100.s,t);
       }else{
-        const profitFrac = p/100; // > 1
+        const profitFrac = p/100;
         ladderStop = entry*(1 + profitFrac*keep100);
       }
-      $("ladderStop").textContent = fmt(ladderStop);
+      $("ladderStop").textContent = fmt(ladderStop,2);
 
-      // Technical stop
+      // Kỹ thuật
       const techs = [ma10w, swingLow].filter(v=>isFinite(v)&&v>0);
       const techStop = techs.length? Math.max(...techs) : null;
-      $("techStop").textContent = techStop? fmt(techStop):"—";
+      $("techStop").textContent = techStop? fmt(techStop,2):"—";
 
-      // Final suggested
+      // Đề xuất
       let finalStop = ladderStop;
       if(techStop) finalStop = Math.max(ladderStop, techStop);
-      $("finalStop").textContent = fmt(finalStop);
+      $("finalStop").textContent = fmt(finalStop,2);
 
       const warn = [];
       if(finalStop && current && finalStop>=current){
-        warn.push("Stop đề xuất ≥ giá hiện tại — cân nhắc chốt bớt hoặc hạ tham vọng giữ lãi.");
+        warn.push("Stop đề xuất ≥ giá hiện tại — cân nhắc giảm vị thế.");
       }
       if(initStop && initStop>=entry){
-        warn.push("Stop ban đầu không hợp lệ (≥ Entry). Kiểm tra lại tham số.");
+        warn.push("Stop ban đầu không hợp lệ (≥ Entry).");
       }
       $("warnings").textContent = warn.length? warn.join(" ") : "Stop đề xuất = max(Thang khóa lãi, Stop kỹ thuật).";
 
       return {entry,current,initStop,ladderStop,techStop,finalStop,profitPct};
-    }
-
-    function roundToTick(x, step){
-      if(!isFinite(x)||!isFinite(step)||step<=0) return x;
-      return Math.round(x/step)*step;
     }
 
     function bindIncDec(){
@@ -284,7 +437,6 @@
         })
       })
     }
-
     function applyPreset(name){
       const presets={
         conservative:{k20:40,k40:60,k100:85},
@@ -294,47 +446,117 @@
       const p=presets[name]; if(!p) return;
       $("keep20").value=p.k20; $("keep40").value=p.k40; $("keep100").value=p.k100; computeStops();
     }
-
     function copyResults(){
       const t={profit:$("profit").textContent, initStop:$("initStop").textContent, ladderStop:$("ladderStop").textContent, techStop:$("techStop").textContent, finalStop:$("finalStop").textContent};
       const text=`Lợi nhuận: ${t.profit}\nStop ban đầu: ${t.initStop}\nStop thang: ${t.ladderStop}\nStop kỹ thuật: ${t.techStop}\nStop đề xuất: ${t.finalStop}`;
-      navigator.clipboard.writeText(text).then(()=>{
-        $("warnings").textContent = "Đã sao chép kết quả vào clipboard.";
-      }).catch(()=>{
-        $("warnings").textContent = "Không sao chép được. Trình duyệt chặn clipboard.";
+      navigator.clipboard.writeText(text).then(()=>{$("warnings").textContent = "Đã sao chép kết quả."}).catch(()=>{$("warnings").textContent="Không sao chép được (trình duyệt chặn)."});
+    }
+
+    // ===== TOOL 2: PHÂN BỔ VỐN =====
+    const parseVN=v=>parseFloat((v||"").toString().replace(/,/g,""))||0;
+
+    function readInputs(){
+      const total=parseVN($("totalCap").value);
+      const n0=parseVN($("n0").value);
+      const p0=parseVN($("p0").value);
+      const budget= total - n0*p0;
+      $("budget").value=fmt(budget);
+      const pct=parseVN($("targetPct").value)/100;
+      const Ptarget= total * pct;
+      $("targetVND").value=fmt(Ptarget);
+      return {total,n0,p0,budget,Ptarget,stopPct:parseVN($("stopPct").value)/100};
+    }
+
+    function runScenarioA(){
+      const pt=parseVN($("addTarget").value);
+      const mktIn=parseVN($("marketPrice").value);
+      const body=$("tbodyA"); body.innerHTML="";
+      if(!(pt>0)){
+        body.innerHTML=`<tr><td colspan="9" class="small">Nhập Target và Giá hiện tại để tính.</td></tr>`;
+        return;
+      }
+      const inp=readInputs();
+      const base = (mktIn>0? mktIn : inp.p0);
+      const steps=[{label:'-14%',mul:0.86},{label:'-7%',mul:0.93},{label:'0%',mul:1.00},{label:'+7%',mul:1.07},{label:'+14%',mul:1.14}];
+      let rows="";
+      steps.forEach(sc=>{
+        const buyPrice = base*sc.mul;
+        const n1 = Math.floor(inp.budget / buyPrice);
+        if(n1<=0) return;
+        const avgNew = (inp.n0*inp.p0 + n1*buyPrice) / (inp.n0 + n1);
+        const stop = avgNew * (1 - inp.stopPct);
+        const profit = (inp.n0 + n1)*pt - (inp.n0*inp.p0 + n1*buyPrice);
+        const ok = profit >= inp.Ptarget;
+        rows+=`<tr>
+          <td>${fmt(pt)}</td>
+          <td>${sc.label}</td>
+          <td>${fmt(buyPrice)}</td>
+          <td>${fmt(n1)}</td>
+          <td>${fmt(n1*buyPrice)}</td>
+          <td>${fmt(avgNew)}</td>
+          <td>${fmt(stop)}</td>
+          <td>${fmt(profit)}</td>
+          <td><span class="badge ${ok?'ok':'warn'}">${ok?'Đạt mục tiêu':'Ước tính'}</span></td>
+        </tr>`;
       });
+      body.innerHTML = rows || `<tr><td colspan="9" class="small">Ngân sách hiện tại không mua được ở các kịch bản ±7%/±14%.</td></tr>`;
     }
 
-    function saveState(){
-      const ids=["entry","current","initStopPct","breakoutLow","ma10w","swingLow","keep20","keep40","keep100"];
-      const data={}; ids.forEach(id=>data[id]=$(id).value);
-      localStorage.setItem('profitlock.v1', JSON.stringify(data));
-    }
-    function loadState(){
-      try{
-        const raw=localStorage.getItem('profitlock.v1'); if(!raw) return; const data=JSON.parse(raw);
-        Object.entries(data).forEach(([k,v])=>{ if($(k)) $(k).value=v });
-      }catch(e){}
+    function runScenarioB(){
+      const inp=readInputs();
+      const p1=parseVN($("p1").value);
+      const pt=parseVN($("targetB").value);
+      const stopPct=parseVN($("stopPctB").value)/100;
+      const n1=Math.floor(inp.budget/p1);
+      const avg=(inp.n0*inp.p0+n1*p1)/(inp.n0+n1);
+      const stop=avg*(1-stopPct);
+      const profit=(inp.n0+n1)*pt - (inp.n0*inp.p0+n1*p1);
+      const profitPct=(pt/avg-1)*100;
+      const need=(inp.Ptarget+inp.n0*inp.p0)/(pt-p1)-inp.n0;
+      const minTarget=(inp.n0*inp.p0+inp.budget)/(inp.n0+n1);
+
+      $("avgB").value=fmt(avg);
+      $("stopB").value=fmt(stop);
+      $("profitB").value=fmt(profit);
+      $("profitPctB").value=isFinite(profitPct)? fmt(profitPct,2)+" %" : "—";
+      $("needBuyB").value=fmt(Math.ceil(need));
+      $("canBuyB").value=fmt(n1);
+      $("minTargetB").value=fmt(minTarget)+` (với ~${fmt(n1)} cp)`;
     }
 
-    // Events
-    ["entry","current","initStopPct","breakoutLow","ma10w","swingLow","keep20","keep40","keep100"].forEach(id=>$(id).addEventListener('input',()=>{computeStops(); saveState()}));
+    // ===== Common actions =====
     document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>applyPreset(b.getAttribute('data-preset'))));
+    document.querySelectorAll('[data-inc],[data-dec]').forEach(()=>{}); // placeholder to keep order
+    function wireIncDec(){ // ensure after DOM ready
+      document.querySelectorAll('[data-inc],[data-dec]').forEach(el=>el.onclick=null);
+      bindIncDec();
+    }
+
     $("btnRoundTick").addEventListener('click',()=>{
-      const step=parseFloat($("tickStep").value)||0.01; const {initStop,ladderStop,techStop,finalStop}=computeStops();
-      if(isFinite(initStop)) $("initStop").textContent=fmt(roundToTick(initStop,step));
-      if(isFinite(ladderStop)) $("ladderStop").textContent=fmt(roundToTick(ladderStop,step));
-      if(isFinite(techStop)) $("techStop").textContent=fmt(roundToTick(techStop,step));
-      if(isFinite(finalStop)) $("finalStop").textContent=fmt(roundToTick(finalStop,step));
+      const step=parseFloat($("tickStep").value)||0.01;
+      const {initStop,ladderStop,techStop,finalStop}=computeStops();
+      if(isFinite(initStop)) $("initStop").textContent=fmt(roundToTick(initStop,step),2);
+      if(isFinite(ladderStop)) $("ladderStop").textContent=fmt(roundToTick(ladderStop,step),2);
+      if(isFinite(techStop)) $("techStop").textContent=fmt(roundToTick(techStop,step),2);
+      if(isFinite(finalStop)) $("finalStop").textContent=fmt(roundToTick(finalStop,step),2);
     });
-    $("btnCopy").addEventListener('click',copyResults);
-    $("btnReset").addEventListener('click',()=>{localStorage.removeItem('profitlock.v1'); window.location.reload()});
+    $("btnCopy").addEventListener('click',()=>copyResults());
+
+    $("btnResetAll").addEventListener('click',()=>{ location.reload(); });
     $("btnPrint").addEventListener('click',()=>window.print());
 
-    bindIncDec();
-    loadState();
+    // Auto recompute
+    ["entry","current","initStopPct","breakoutLow","ma10w","swingLow","keep20","keep40","keep100"].forEach(id=>{
+      const el=$(id); if(el) el.addEventListener('input',computeStops);
+    });
+    ["totalCap","n0","p0","targetPct"].forEach(id=>{
+      const el=$(id); if(el) el.addEventListener('input',readInputs);
+    });
+
+    // Boot
     computeStops();
+    readInputs();
+    wireIncDec();
   </script>
 </body>
 </html>
-
