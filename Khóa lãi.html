@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Máy tính Khóa Lãi (Weekly) — Light</title>
+  <style>
+    :root{
+      --bg:#f7f8fb; --card:#ffffff; --ink:#0f172a; --muted:#475569; --accent:#2563eb; --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+      --border:#e5e7eb; --chip:#f1f5f9; --shadow:0 8px 26px rgba(15, 23, 42, .06)
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); color:var(--ink)}
+    .wrap{max-width:980px; margin:32px auto 64px; padding:0 20px}
+    header{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:18px}
+    h1{font-size:26px; margin:0 0 6px}
+    .sub{color:var(--muted)}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:18px}
+    .grid{display:grid; gap:16px}
+    @media(min-width:900px){.grid.cols-2{grid-template-columns:1fr 1fr}}
+    .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+    .row > *{flex:1 1 180px}
+    label{display:block; color:var(--muted); font-size:13px; margin:6px 0}
+    input, select{width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#fff; color:var(--ink)}
+    input[type=number]{appearance:textfield}
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button{appearance:none; margin:0}
+    .btn{appearance:none; border:1px solid var(--border); padding:10px 14px; border-radius:12px; background:#f8fafc; color:var(--ink); cursor:pointer}
+    .btn:hover{border-color:#cbd5e1; background:#eef2f7}
+    .btn.accent{border-color:#bfdbfe; background:#e8f0ff}
+    .btn.ghost{background:transparent}
+    .btn.small{padding:6px 10px; border-radius:10px; font-size:13px}
+    .kpi{display:flex; gap:10px; flex-wrap:wrap}
+    .pill{background:var(--chip); border:1px solid var(--border); padding:6px 10px; border-radius:999px; color:var(--muted)}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    .hr{height:1px; background:linear-gradient(90deg,transparent,#e2e8f0,transparent); margin:14px 0}
+    table{width:100%; border-collapse:collapse}
+    th,td{padding:8px 10px; border-bottom:1px solid #edf2f7}
+    th{text-align:left; color:#334155; font-weight:600}
+    .right{text-align:right}
+    .small{font-size:12px; color:var(--muted)}
+    .chips{display:flex; gap:8px; flex-wrap:wrap}
+    .chip{background:#f1f5f9; border:1px solid var(--border); padding:6px 10px; border-radius:999px}
+    .status{display:flex; gap:8px; align-items:center}
+    .status .dot{width:10px; height:10px; border-radius:50%}
+    .dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+    .toolbar{display:flex; gap:8px; flex-wrap:wrap}
+    .group{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+    .grow{flex:1}
+    footer{margin-top:18px; color:var(--muted); font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Máy tính Khóa Lãi (Weekly) — Light</h1>
+        <div class="sub">Tập trung duy nhất vào logic khóa lãi & stop đề xuất.</div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="btnReset">Đặt lại</button>
+        <button class="btn" id="btnPrint">In / Lưu PDF</button>
+      </div>
+    </header>
+
+    <section class="card" id="calc">
+      <div class="grid cols-2">
+        <div>
+          <h3>Thông tin giao dịch</h3>
+          <div class="row"><div>
+            <label for="entry">Giá mua (Entry)</label>
+            <input type="number" id="entry" value="20" step="0.01" min="0.01">
+          </div><div>
+            <label for="current">Giá hiện tại (Current)</label>
+            <input type="number" id="current" value="28" step="0.01" min="0.01">
+          </div></div>
+
+          <div class="row"><div>
+            <label for="initStopPct">% dừng lỗ ban đầu</label>
+            <div class="group">
+              <button class="btn small" data-dec="initStopPct">−</button>
+              <input class="grow" type="number" id="initStopPct" value="8" step="0.1" min="1" max="30">
+              <button class="btn small" data-inc="initStopPct">+</button>
+              <span class="pill">%</span>
+            </div>
+          </div><div>
+            <label for="breakoutLow">Đáy tuần breakout (tuỳ chọn)</label>
+            <input type="number" id="breakoutLow" step="0.01" placeholder="vd 18.4" min="0">
+          </div></div>
+
+          <div class="row"><div>
+            <label for="ma10w">MA10 tuần (tuỳ chọn)</label>
+            <input type="number" id="ma10w" step="0.01" placeholder="vd 25.2" min="0">
+          </div><div>
+            <label for="swingLow">Đáy 2–3 tuần gần nhất (tuỳ chọn)</label>
+            <input type="number" id="swingLow" step="0.01" placeholder="vd 26.0" min="0">
+          </div></div>
+
+          <div class="hr"></div>
+
+          <h3>Thang khóa lãi</h3>
+          <div class="row">
+            <div>
+              <label for="keep20">Giữ % lợi nhuận tại +20%</label>
+              <div class="group">
+                <button class="btn small" data-dec="keep20">−</button>
+                <input class="grow" type="number" id="keep20" value="50" step="1" min="0" max="100">
+                <button class="btn small" data-inc="keep20">+</button>
+                <span class="pill">%</span>
+              </div>
+            </div>
+            <div>
+              <label for="keep40">Giữ % lợi nhuận tại +40%</label>
+              <div class="group">
+                <button class="btn small" data-dec="keep40">−</button>
+                <input class="grow" type="number" id="keep40" value="65" step="1" min="0" max="100">
+                <button class="btn small" data-inc="keep40">+</button>
+                <span class="pill">%</span>
+              </div>
+            </div>
+            <div>
+              <label for="keep100">Giữ % lợi nhuận tại +100%</label>
+              <div class="group">
+                <button class="btn small" data-dec="keep100">−</button>
+                <input class="grow" type="number" id="keep100" value="85" step="1" min="0" max="100">
+                <button class="btn small" data-inc="keep100">+</button>
+                <span class="pill">%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chips" aria-label="Mẫu thiết lập nhanh">
+            <button class="btn small accent" data-preset="conservative">Mẫu: Thận trọng</button>
+            <button class="btn small accent" data-preset="balanced">Mẫu: Cân bằng</button>
+            <button class="btn small accent" data-preset="aggressive">Mẫu: Tích cực</button>
+          </div>
+        </div>
+
+        <div>
+          <h3>Kết quả</h3>
+          <table>
+            <tr><th>Chỉ tiêu</th><th class="right">Giá trị</th></tr>
+            <tr><td>Lợi nhuận hiện tại</td><td class="right" id="profit">—</td></tr>
+            <tr><td>Stop ban đầu</td><td class="right mono" id="initStop">—</td></tr>
+            <tr><td>Stop theo thang khóa lãi</td><td class="right mono" id="ladderStop">—</td></tr>
+            <tr><td>Stop kỹ thuật (MA10w / SwingLow)</td><td class="right mono" id="techStop">—</td></tr>
+            <tr><td><strong>Stop đề xuất (tuần)</strong></td><td class="right mono" id="finalStop">—</td></tr>
+          </table>
+
+          <div class="hr"></div>
+
+          <div class="kpi">
+            <span class="pill small" id="warnings">Nhập số liệu để tính tự động. Stop đề xuất = max(Thang, Kỹ thuật).</span>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="toolbar">
+            <button class="btn" id="btnRoundTick" title="Làm tròn stop về bước tick">Làm tròn stop</button>
+            <select id="tickStep" title="Bước tick">
+              <option value="0.01">Bước 0.01</option>
+              <option value="0.05">Bước 0.05</option>
+              <option value="0.1">Bước 0.1</option>
+              <option value="0.5">Bước 0.5</option>
+              <option value="1">Bước 1.0</option>
+            </select>
+            <button class="btn" id="btnCopy">Sao chép kết quả</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>Logic: Stop đề xuất lấy giá cao nhất giữa “thang khóa lãi” (nội suy theo +20/+40/+100%) và mốc kỹ thuật (MA10w, swing low). Nếu stop ≥ giá hiện tại → cân nhắc giảm vị thế.</div>
+    </footer>
+  </div>
+
+  <script>
+    const $ = (id)=>document.getElementById(id);
+
+    function fmt(n,unit=""){
+      if(n==null||isNaN(n)) return "—";
+      return new Intl.NumberFormat('vi-VN',{maximumFractionDigits:2}).format(n)+(unit||"")
+    }
+    function percent(n){
+      if(n==null||isNaN(n)) return "—";
+      return (n>0?"+":"")+fmt(n, "%")
+    }
+    const clamp=(x,min,max)=>Math.min(max,Math.max(min,x));
+    const lerp=(a,b,t)=>a+(b-a)*t;
+
+    function computeStops(){
+      const entry=parseFloat($("entry").value);
+      const current=parseFloat($("current").value);
+      const initPct=parseFloat($("initStopPct").value)/100;
+      const breakoutLow=parseFloat($("breakoutLow").value);
+      const ma10w=parseFloat($("ma10w").value);
+      const swingLow=parseFloat($("swingLow").value);
+
+      if(!isFinite(entry)||!isFinite(current)||entry<=0||current<=0){
+        ["profit","initStop","ladderStop","techStop","finalStop"].forEach(id=>$(id).textContent="—");
+        return {entry,current,initStop:null,ladderStop:null,techStop:null,finalStop:null,profitPct:null};
+      }
+
+      const profitPct = (current/entry - 1)*100;
+      $("profit").textContent = percent(profitPct);
+
+      // Initial stop
+      let initStop = entry*(1 - (isFinite(initPct)?initPct:0.08));
+      if(isFinite(breakoutLow) && breakoutLow>0){
+        initStop = Math.max(initStop, breakoutLow); // chọn ngưỡng gần hơn (cao hơn)
+      }
+      $("initStop").textContent = fmt(initStop);
+
+      // Ladder anchors
+      const keep20 = clamp(parseFloat($("keep20").value)||50,0,100)/100;
+      const keep40 = clamp(parseFloat($("keep40").value)||65,0,100)/100;
+      const keep100= clamp(parseFloat($("keep100").value)||85,0,100)/100;
+
+      const a0   = {p:0,   s:initStop};
+      const a20  = {p:20,  s: entry*(1+0.20*keep20)};
+      const a40  = {p:40,  s: entry*(1+0.40*keep40)};
+      const a100 = {p:100, s: entry*(1+1.00*keep100)};
+
+      let ladderStop;
+      const p = profitPct;
+      if(p<=a20.p){
+        const t=Math.max(0,Math.min(1,(p-a0.p)/(a20.p-a0.p)));
+        ladderStop = lerp(a0.s,a20.s,t);
+      }else if(p<=a40.p){
+        const t=(p-a20.p)/(a40.p-a20.p);
+        ladderStop = lerp(a20.s,a40.s,t);
+      }else if(p<=a100.p){
+        const t=(p-a40.p)/(a100.p-a40.p);
+        ladderStop = lerp(a40.s,a100.s,t);
+      }else{
+        const profitFrac = p/100; // > 1
+        ladderStop = entry*(1 + profitFrac*keep100);
+      }
+      $("ladderStop").textContent = fmt(ladderStop);
+
+      // Technical stop
+      const techs = [ma10w, swingLow].filter(v=>isFinite(v)&&v>0);
+      const techStop = techs.length? Math.max(...techs) : null;
+      $("techStop").textContent = techStop? fmt(techStop):"—";
+
+      // Final suggested
+      let finalStop = ladderStop;
+      if(techStop) finalStop = Math.max(ladderStop, techStop);
+      $("finalStop").textContent = fmt(finalStop);
+
+      const warn = [];
+      if(finalStop && current && finalStop>=current){
+        warn.push("Stop đề xuất ≥ giá hiện tại — cân nhắc chốt bớt hoặc hạ tham vọng giữ lãi.");
+      }
+      if(initStop && initStop>=entry){
+        warn.push("Stop ban đầu không hợp lệ (≥ Entry). Kiểm tra lại tham số.");
+      }
+      $("warnings").textContent = warn.length? warn.join(" ") : "Stop đề xuất = max(Thang khóa lãi, Stop kỹ thuật).";
+
+      return {entry,current,initStop,ladderStop,techStop,finalStop,profitPct};
+    }
+
+    function roundToTick(x, step){
+      if(!isFinite(x)||!isFinite(step)||step<=0) return x;
+      return Math.round(x/step)*step;
+    }
+
+    function bindIncDec(){
+      document.querySelectorAll('[data-inc]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          const id=btn.getAttribute('data-inc');
+          const el=$(id); const step=parseFloat(el.step)||1; const max=parseFloat(el.max); const v=parseFloat(el.value)||0;
+          const next= isFinite(max)? Math.min(v+step,max) : v+step;
+          el.value = Number(next.toFixed(4)); computeStops();
+        })
+      })
+      document.querySelectorAll('[data-dec]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          const id=btn.getAttribute('data-dec');
+          const el=$(id); const step=parseFloat(el.step)||1; const min=parseFloat(el.min); const v=parseFloat(el.value)||0;
+          const next= isFinite(min)? Math.max(v-step,min) : v-step;
+          el.value = Number(next.toFixed(4)); computeStops();
+        })
+      })
+    }
+
+    function applyPreset(name){
+      const presets={
+        conservative:{k20:40,k40:60,k100:85},
+        balanced:{k20:50,k40:65,k100:85},
+        aggressive:{k20:60,k40:75,k100:90}
+      };
+      const p=presets[name]; if(!p) return;
+      $("keep20").value=p.k20; $("keep40").value=p.k40; $("keep100").value=p.k100; computeStops();
+    }
+
+    function copyResults(){
+      const t={profit:$("profit").textContent, initStop:$("initStop").textContent, ladderStop:$("ladderStop").textContent, techStop:$("techStop").textContent, finalStop:$("finalStop").textContent};
+      const text=`Lợi nhuận: ${t.profit}\nStop ban đầu: ${t.initStop}\nStop thang: ${t.ladderStop}\nStop kỹ thuật: ${t.techStop}\nStop đề xuất: ${t.finalStop}`;
+      navigator.clipboard.writeText(text).then(()=>{
+        $("warnings").textContent = "Đã sao chép kết quả vào clipboard.";
+      }).catch(()=>{
+        $("warnings").textContent = "Không sao chép được. Trình duyệt chặn clipboard.";
+      });
+    }
+
+    function saveState(){
+      const ids=["entry","current","initStopPct","breakoutLow","ma10w","swingLow","keep20","keep40","keep100"];
+      const data={}; ids.forEach(id=>data[id]=$(id).value);
+      localStorage.setItem('profitlock.v1', JSON.stringify(data));
+    }
+    function loadState(){
+      try{
+        const raw=localStorage.getItem('profitlock.v1'); if(!raw) return; const data=JSON.parse(raw);
+        Object.entries(data).forEach(([k,v])=>{ if($(k)) $(k).value=v });
+      }catch(e){}
+    }
+
+    // Events
+    ["entry","current","initStopPct","breakoutLow","ma10w","swingLow","keep20","keep40","keep100"].forEach(id=>$(id).addEventListener('input',()=>{computeStops(); saveState()}));
+    document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>applyPreset(b.getAttribute('data-preset'))));
+    $("btnRoundTick").addEventListener('click',()=>{
+      const step=parseFloat($("tickStep").value)||0.01; const {initStop,ladderStop,techStop,finalStop}=computeStops();
+      if(isFinite(initStop)) $("initStop").textContent=fmt(roundToTick(initStop,step));
+      if(isFinite(ladderStop)) $("ladderStop").textContent=fmt(roundToTick(ladderStop,step));
+      if(isFinite(techStop)) $("techStop").textContent=fmt(roundToTick(techStop,step));
+      if(isFinite(finalStop)) $("finalStop").textContent=fmt(roundToTick(finalStop,step));
+    });
+    $("btnCopy").addEventListener('click',copyResults);
+    $("btnReset").addEventListener('click',()=>{localStorage.removeItem('profitlock.v1'); window.location.reload()});
+    $("btnPrint").addEventListener('click',()=>window.print());
+
+    bindIncDec();
+    loadState();
+    computeStops();
+  </script>
+</body>
+</html>
